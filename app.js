@@ -23,11 +23,21 @@ todo.model = (function() {
         model.description = m.prop("");
 
         // Adds a todo to the list, alerts if the description box was empty
-        model.add_task = function() {
+        model.addTask = function() {
             if (model.description()) {
                 model.list.push(new todo.Todo({description: model.description()}));
                 model.description(""); // Clears the description field
             }
+        };
+
+        // Returns true if task in uncompleted, false otherwise
+        model.uncompleteTask = function(task) {
+            return !task.status();
+        };
+
+        // Removes all tasks which have been marked as completed
+        model.removeCompleteTasks = function() {
+            model.list = model.list.filter(model.uncompleteTask);
         };
     };
 
@@ -40,43 +50,53 @@ todo.controller = function() {
     todo.model.init()
 }
 
+// This includes the <head> tag into the application for CSS styling and the title
+todo.headView = function() {
+    return m("head", [
+        m("title", "Code Club ToDo Application"),
+        m("link", {rel: "stylesheet", type: "text/css", href: "style.css"})
+    ])
+}
+
 // This renders the header
 todo.headerView = function() {
-    return m("h1", "Code Club Todo Application")
+    return m("div.header", [
+        m("h1", "Code Club Todo Application")
+    ])
 }
 
 // This renders all current tasks
 todo.tasksView = function() {
-    return m("span" , [
+    return m("div.tasks" , [
         m("h2", "Current Tasks"),
-        m("table", [
+        m("table.tasks-table", [
             todo.model.list.map(function(task) {
                 return m("tr", [
                     m("td", [
-                        m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status), checked: task.status()}),
-                        m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
-                    ])
+                        m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status), checked: task.status()})]),
+                    m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
                 ])
             })
-        ])
+        ]),
+        m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
+                                 value: "Remove complete tasks"})
     ])
 }
 
 // This renders the new task menu
 todo.newTaskView = function() {
-    return m("span", [
+    return m("div", [
         m("h2", "Add new task"),
         m("input", {onchange: m.withAttr("value", todo.model.description), value: todo.model.description()}),
-        m("input[type=button]", {onclick: todo.model.add_task, value:"Add task"})
+        m("input[type=button]", {onclick: todo.model.addTask,
+                                 value: "Add task"})
     ])
 }
 
 // This handles rendering the entire application
 todo.view = function() {
     return m("html", [
-        m("head", [
-            m("title", "Code Club ToDo Application")
-        ]),
+        todo.headView(),
         m("body", [
             todo.headerView(),
             todo.tasksView(),
