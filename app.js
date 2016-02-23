@@ -22,6 +22,46 @@ todo.model = (function() {
         // Storage of new todo description before it is created
         model.description = m.prop("");
 
+        // Function with which our todo list is sorted with (returns 0 at first because user has not selected a sort method)
+        model.compareFunction = function(a, b) {
+            return 0;
+        };
+
+        // Sets the compare function to compare by status
+        model.sortByStatus = function() {
+            model.compareFunction = function(task1, task2) {
+                // task1 is uncomplete and task2 is complete
+                if (!task1.status() && task2.status()) {
+                    return -1;
+                }
+
+                // task2 is uncomplete and task1 is complete
+                if (!task2.status() && task1.status()) {
+                    return 1;
+                }
+
+                // tasks are equal
+                return 0;
+            }
+        }
+
+        model.sortByDescription = function() {
+            model.compareFunction = function(task1, task2) {
+                // task1 description should be before task2 description
+                if (task1.description() < task2.description()) {
+                    return -1;
+                }
+
+                // task2 should be before task1
+                if (task1.description() > task2.description()){
+                    return 1;
+                }
+
+                // They are equal
+                return 0;
+            }
+        }
+
         // Adds a todo to the list, alerts if the description box was empty
         model.addTask = function() {
             if (model.description()) {
@@ -70,13 +110,20 @@ todo.tasksView = function() {
     return m("div.tasks" , [
         m("h2", "Current Tasks"),
         m("table.tasks-table", [
-            todo.model.list.map(function(task) {
-                return m("tr", [
-                    m("td", [
-                        m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status), checked: task.status()})]),
-                    m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
-                ])
-            })
+            m("th", [
+                m("input[type=button]", {onclick: todo.model.sortByStatus,
+                                         value: "Completed"}),
+                m("input[type=button]", {onclick: todo.model.sortByDescription,
+                                         value: "Description"})
+            ]),
+            todo.model.list.sort(todo.model.compareFunction)
+                .map(function(task) {
+                    return m("tr", [
+                        m("td", [
+                            m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status), checked: task.status()})]),
+                        m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
+                    ])
+                })
         ]),
         m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
                                  value: "Remove complete tasks"})
