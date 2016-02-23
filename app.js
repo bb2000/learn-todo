@@ -22,6 +22,11 @@ todo.model = (function() {
         // Storage of new todo description before it is created
         model.description = m.prop("");
 
+        // Sorts and updates the list (should be called at the end of every function that changes the list)
+        model.updateList = function() {
+            model.list.sort(model.compareFunction);
+        }
+
         // Function with which our todo list is sorted with (returns 0 at first because user has not selected a sort method)
         model.compareFunction = function(a, b) {
             return 0;
@@ -42,7 +47,8 @@ todo.model = (function() {
 
                 // tasks are equal
                 return 0;
-            }
+            };
+            model.updateList();
         }
 
         model.sortByDescription = function() {
@@ -59,7 +65,8 @@ todo.model = (function() {
 
                 // They are equal
                 return 0;
-            }
+            };
+            model.updateList();
         }
 
         // Adds a todo to the list, alerts if the description box was empty
@@ -67,6 +74,7 @@ todo.model = (function() {
             if (model.description()) {
                 model.list.push(new todo.Todo({description: model.description()}));
                 model.description(""); // Clears the description field
+                model.updateList();
             }
         };
 
@@ -78,6 +86,7 @@ todo.model = (function() {
         // Removes all tasks which have been marked as completed
         model.removeCompleteTasks = function() {
             model.list = model.list.filter(model.uncompleteTask);
+            model.updateList();
         };
     };
 
@@ -116,18 +125,19 @@ todo.tasksView = function() {
                 m("input[type=button]", {onclick: todo.model.sortByDescription,
                                          value: "Description"})
             ]),
-            todo.model.list.sort(todo.model.compareFunction)
+            todo.model.list
                 .map(function(task) {
                     return m("tr", [
                         m("td", [
-                            m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status), checked: task.status()})]),
+                            m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status),
+                                                       checked: task.status()})]),
                         m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
                     ])
                 })
         ]),
         m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
                                  value: "Remove complete tasks"})
-    ])
+    ]);
 }
 
 // This renders the new task menu
