@@ -5,7 +5,11 @@ var todo = {};
 // Due Dates will be added at a later date
 todo.Todo = function(data) {
     this.description = m.prop(data.description);
-    this.status = m.prop(false); // Tasks will be not finished by default
+    if (data.status === true) {
+        this.status = m.prop(true);
+    } else {
+        this.status = m.prop(false);
+    }
 };
 
 // A TodoList is an array of Todo's
@@ -16,15 +20,25 @@ todo.model = (function() {
     var model = {}
 
     model.init = function(){
-        // The list of current tasks
+        // The list of current tasks (loads from local storage if it exists already)
         model.list = new todo.TodoList();
+        if (localStorage.getItem("tasklist")) {
+            var data = JSON.parse(localStorage.getItem("tasklist"));
+
+            data.map(function(task) {
+                model.list.push(new todo.Todo(task))
+            });
+        } else {
+            localStorage.setItem("tasklist", JSON.stringify(model.list));
+        }
 
         // Storage of new todo description before it is created
         model.description = m.prop("");
 
-        // Sorts and updates the list (should be called at the end of every function that changes the list)
+        // Sorts, updates and stores the list (should be called at the end of every function that changes the list)
         model.updateList = function() {
             model.list.sort(model.compareFunction);
+            localStorage.setItem("tasklist", JSON.stringify(model.list));
         }
 
         // Function with which our todo list is sorted with (returns 0 at first because user has not selected a sort method)
@@ -129,7 +143,10 @@ todo.tasksView = function() {
                 .map(function(task) {
                     return m("tr", [
                         m("td", [
-                            m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status),
+                            m("input[type=checkbox]", {onclick: function() {
+                                task.status(!task.status());
+                                todo.model.updateList();
+                            },
                                                        checked: task.status()})]),
                         m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
                     ])
