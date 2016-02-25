@@ -7,3 +7,15 @@
 .header h1 {
     margin: 0px;
 }
+
+.tasks-table {
+    border-collapse: collapse;
+}
+
+.tasks-table table, th, td {
+    border: 1px solid black;
+}
+
+.tasks-table input {
+    background-color: white;
+}

@@ -5,11 +5,8 @@ var todo = {};
 // Due Dates will be added at a later date
 todo.Todo = function(data) {
     this.description = m.prop(data.description);
-    if (data.status === true) {
-        this.status = m.prop(true);
-    } else {
-        this.status = m.prop(false);
-    }
+    this.status = m.prop(data.status ? true : false);
+    this.dateCreated = m.prop(data.dateCreated ? data.dateCreated : new Date().toDateString());
 };
 
 // A TodoList is an array of Todo's
@@ -65,6 +62,7 @@ todo.model = (function() {
             model.updateList();
         }
 
+        // Sets the compare function to compare by task description
         model.sortByDescription = function() {
             model.compareFunction = function(task1, task2) {
                 // task1 description should be before task2 description
@@ -82,6 +80,22 @@ todo.model = (function() {
             };
             model.updateList();
         }
+
+        // Sets the compare function to sort by the date the task was created
+        model.sortByCreationDate = function() {
+            model.compareFunction = function(task1,task2) {
+                // Convert date string to Dates
+                var date1 = new Date(task1.dateCreated());
+                var date2 = new Date(task1.dateCreated());
+
+                // Compares the dates
+                if (date1 === date2) {
+                    return 0; // Returns 0 if dates are equal
+                } else {
+                    return (date1 > date2 ? 1 : -1); // Returns -1 if task1 should be before task2, 1 otherwise
+                }
+            }
+        };
 
         // Adds a todo to the list, alerts if the description box was empty
         model.addTask = function() {
@@ -135,26 +149,28 @@ todo.tasksView = function() {
         m("table.tasks-table", [
             m("th", [
                 m("input[type=button]", {onclick: todo.model.sortByStatus,
-                                         value: "Completed"}),
+                                         value: "Completed"})]),
+            m("th", [
                 m("input[type=button]", {onclick: todo.model.sortByDescription,
                                          value: "Description"})
             ]),
-            todo.model.list
-                .map(function(task) {
-                    return m("tr", [
-                        m("td", [
-                            m("input[type=checkbox]", {onclick: function() {
-                                task.status(!task.status());
-                                todo.model.updateList();
-                            },
-                                                       checked: task.status()})]),
-                        m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description())
-                    ])
-                })
-        ]),
-        m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
-                                 value: "Remove complete tasks"})
-    ]);
+            m("th", [
+                m("input[type=button]", {onclick: todo.model.sortByCreationDate,
+                                         value: "Date Created"})
+            ]),
+          todo.model.list
+          .map(function(task) {
+              return m("tr", [
+                  m("td", [
+                      m("input[type=checkbox]", {onclick: m.withAttr("checked", task.status), checked: task.status()})]),
+                  m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description()),
+                  m("td", task.dateCreated().toString())
+              ])
+          })
+         ]),
+             m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
+                                      value: "Remove complete tasks"})
+            ]);
 }
 
 // This renders the new task menu
