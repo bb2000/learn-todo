@@ -1,8 +1,7 @@
 // Creates application component
 var todo = {};
 
-// Todos have a description and a status (done or not)
-// Due Dates will be added at a later date TODO
+// Todos have a description, a status (done or not), a creation date and a due date
 todo.Todo = function(data) {
     this.description = m.prop(data.description);
     this.status = m.prop(data.status ? true : false);
