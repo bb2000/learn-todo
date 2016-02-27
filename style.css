@@ -19,3 +19,9 @@
 .tasks-table input {
     background-color: white;
 }
+
+.remove_task {
+    color: red;
+    border: 0px;
+    background-color: white;
+}

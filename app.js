@@ -142,6 +142,12 @@ todo.model = (function() {
             model.list = model.list.filter(model.uncompleteTask);
             model.updateList();
         };
+
+        // Removes a task at a given index in the task list
+        model.removeTaskAtIndex = function(taskIndex) {
+            model.list.splice(taskIndex,1);
+            todo.model.updateList();
+        }
     };
 
     return model
@@ -188,20 +194,22 @@ todo.tasksView = function() {
                 m("input[type=button]", {onclick: todo.model.sortByDueDate,
                                          value: "Due Date"})
             ]),
-          todo.model.list
-          .map(function(task) {
-              return m("tr", {key: task.description()},  [
-                  m("td", [
-                      m("input[type=checkbox]", {onclick: function(){task.status(!task.status()); todo.model.updateList()}, checked: task.status()})]),
-                  m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description()),
-                  m("td", task.dateCreated()),
-                  m("td", {style: {color: (Date.parse(task.dueDate()) > Date.now()) ? "green" : "red"}} ,task.dueDate())
-              ])
-          })
-         ]),
-             m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
-                                      value: "Remove complete tasks"})
-            ]);
+            todo.model.list.map(function(task, taskindex) {
+                return m("tr", {key: task.description()},  [
+                    m("td", [
+                        m("input[type=checkbox]", {onclick: function(){task.status(!task.status()); todo.model.updateList()}, checked: task.status()})]),
+                    m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description()),
+                    m("td", task.dateCreated()),
+                    m("td", {style: {color: (Date.parse(task.dueDate()) > Date.now()) ? "green" : "red"}} ,task.dueDate()),
+                    m("td", [
+                        m("button.remove_task", {onclick: function(){todo.model.removeTaskAtIndex(taskindex)}}, "✘")
+                    ])
+                ])
+            })
+        ]),
+        m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
+                                 value: "Remove complete tasks"})
+    ]);
 }
 
 // This renders the new task menu
