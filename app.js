@@ -35,6 +35,9 @@ todo.model = (function() {
         // Storage of new todo due date before it is created
         model.dueDate = m.prop("");
 
+        // Storage for searchbox text
+        model.searchbox = m.prop("");
+
         // Sorts, updates and stores the list (should be called at the end of every function that changes the list)
         model.updateList = function() {
             model.list.sort(model.compareFunction);
@@ -174,6 +177,14 @@ todo.headerView = function() {
     ])
 }
 
+// This renders the search bar and filter options for tasks
+todo.searchView = function() {
+    return m("div.search", [
+        m("h2", "Search Tasks"),
+        m("input[type=text]", {placeholder: "Search", oninput: m.withAttr("value", todo.model.searchbox)}, todo.model.searchbox())
+    ]);
+}
+
 // This renders all current tasks
 todo.tasksView = function() {
     return m("div.tasks" , [
@@ -195,16 +206,18 @@ todo.tasksView = function() {
                                          value: "Due Date"})
             ]),
             todo.model.list.map(function(task, taskindex) {
-                return m("tr", {key: task.description()},  [
-                    m("td", [
-                        m("input[type=checkbox]", {onclick: function(){task.status(!task.status()); todo.model.updateList()}, checked: task.status()})]),
-                    m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description()),
-                    m("td", task.dateCreated()),
-                    m("td", {style: {color: (Date.parse(task.dueDate()) > Date.now()) ? "green" : "red"}} ,task.dueDate()),
-                    m("td", [
-                        m("button.remove_task", {onclick: function(){todo.model.removeTaskAtIndex(taskindex)}}, "✘")
+                if (task.description().toLowerCase().includes(todo.model.searchbox().toLowerCase())) {
+                    return m("tr", {key: task.description()},  [
+                        m("td", [
+                            m("input[type=checkbox]", {onclick: function(){task.status(!task.status()); todo.model.updateList()}, checked: task.status()})]),
+                        m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description()),
+                        m("td", task.dateCreated()),
+                        m("td", {style: {color: (Date.parse(task.dueDate()) > Date.now()) ? "green" : "red"}} ,task.dueDate()),
+                        m("td", [
+                            m("button.remove_task", {onclick: function(){todo.model.removeTaskAtIndex(taskindex)}}, "✘")
+                        ])
                     ])
-                ])
+                }
             })
         ]),
         m("input[type=button]", {onclick: todo.model.removeCompleteTasks,
@@ -217,7 +230,7 @@ todo.newTaskView = function() {
     return m("div", [
         m("h2", "Add new task"),
         m("label", "Description:",
-          m("input", {onchange: m.withAttr("value", todo.model.description), value: todo.model.description()})),
+          m("input", {oninput: m.withAttr("value", todo.model.description), value: todo.model.description()})),
         m("br"),
         m("label", "Due Date:",
           m("input[type=date]", {onchange: m.withAttr("value", todo.model.dueDate), value: todo.model.dueDate()})),
@@ -233,6 +246,7 @@ todo.view = function() {
         todo.headView(),
         m("body", [
             todo.headerView(),
+            todo.searchView(),
             todo.tasksView(),
             todo.newTaskView()
         ])
