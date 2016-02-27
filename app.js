@@ -190,7 +190,7 @@ todo.tasksView = function() {
             ]),
           todo.model.list
           .map(function(task) {
-              return m("tr", [
+              return m("tr", {key: task.description()},  [
                   m("td", [
                       m("input[type=checkbox]", {onclick: function(){task.status(!task.status()); todo.model.updateList()}, checked: task.status()})]),
                   m("td", {style: {textDecoration: task.status() ? "line-through" : "none" }}, task.description()),
@@ -208,8 +208,12 @@ todo.tasksView = function() {
 todo.newTaskView = function() {
     return m("div", [
         m("h2", "Add new task"),
-        m("input", {onchange: m.withAttr("value", todo.model.description), value: todo.model.description()}),
-        m("input[type=date]", {onchange: m.withAttr("value", todo.model.dueDate), value: todo.model.dueDate()}),
+        m("label", "Description:",
+          m("input", {onchange: m.withAttr("value", todo.model.description), value: todo.model.description()})),
+        m("br"),
+        m("label", "Due Date:",
+          m("input[type=date]", {onchange: m.withAttr("value", todo.model.dueDate), value: todo.model.dueDate()})),
+        m("br"),
         m("input[type=button]", {onclick: todo.model.addTask,
                                  value: "Add task"})
     ])
