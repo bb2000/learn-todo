@@ -6,7 +6,7 @@ todo.Todo = function(data) {
     this.description = m.prop(data.description);
     this.status = m.prop(data.status ? true : false);
     this.dateCreated = m.prop(data.dateCreated ? data.dateCreated : new Date().toDateString());
-    this.dueDate = m.prop(data.dueDate)
+    this.dueDate = m.prop(data.dueDate);
 };
 
 // A TodoList is an array of Todo's
