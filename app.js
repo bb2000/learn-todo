@@ -135,6 +135,11 @@ todo.model = (function() {
             }
         };
 
+        // Returns true if a task should be visible according to search and filtering options, false otherwise
+        model.taskIsVisible = function(task) {
+            return (task.description().toLowerCase().includes(model.searchbox().toLowerCase()));
+        }
+
         // Returns true if task in uncompleted, false otherwise
         model.uncompleteTask = function(task) {
             return !task.status();
@@ -206,7 +211,7 @@ todo.tasksView = function() {
                                          value: "Due Date"})
             ]),
             todo.model.list.map(function(task, taskindex) {
-                if (task.description().toLowerCase().includes(todo.model.searchbox().toLowerCase())) {
+                if (todo.model.taskIsVisible(task)) {
                     return m("tr", {key: task.description()},  [
                         m("td", [
                             m("input[type=checkbox]", {onclick: function(){task.status(!task.status()); todo.model.updateList()}, checked: task.status()})]),
