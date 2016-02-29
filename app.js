@@ -38,6 +38,9 @@ todo.model = (function() {
         // Storage for searchbox text
         model.searchbox = m.prop("");
 
+        // Storage for currently selected filter (all, completed, uncompleted)
+        model.selectFilter = m.prop("all"); // All tasks by default
+
         // Sorts, updates and stores the list (should be called at the end of every function that changes the list)
         model.updateList = function() {
             model.list.sort(model.compareFunction);
@@ -137,7 +140,20 @@ todo.model = (function() {
 
         // Returns true if a task should be visible according to search and filtering options, false otherwise
         model.taskIsVisible = function(task) {
-            return (task.description().toLowerCase().includes(model.searchbox().toLowerCase()));
+            // True if the searchbox text is in the tasks description
+            var matchesSearchBox = task.description().toLowerCase().includes(model.searchbox().toLowerCase());
+
+            // True if the task should be visible according to the filter the user has selected
+            var matchesFilter;
+            if (model.selectFilter() === "all") {
+                matchesFilter = true;
+            } else if (model.selectFilter() === "completed") {
+                matchesFilter = task.status();
+            } else if (model.selectFilter() === "uncompleted") {
+                matchesFilter = !task.status();
+            }
+
+            return (matchesSearchBox && matchesFilter);
         }
 
         // Returns true if task in uncompleted, false otherwise
@@ -186,7 +202,14 @@ todo.headerView = function() {
 todo.searchView = function() {
     return m("div.search", [
         m("h2", "Search Tasks"),
-        m("input[type=text]", {placeholder: "Search", oninput: m.withAttr("value", todo.model.searchbox)}, todo.model.searchbox())
+        m("input[type=text]", {placeholder: "Search", oninput: m.withAttr("value", todo.model.searchbox)}, todo.model.searchbox()),
+        m("br"),
+        m("label", "Show:",
+          m("select", {onchange: m.withAttr("value", todo.model.selectFilter)}, [
+              m("option", {value: "all", selected: true}, "All Tasks"),
+              m("option", {value: "completed"}, "Completed Tasks"),
+              m("option", {value: "uncompleted"}, "Uncompleted Tasks")
+          ]))
     ]);
 }
 
