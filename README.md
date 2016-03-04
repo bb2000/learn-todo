@@ -19,7 +19,7 @@ However, the search/filtering of the whole task list will still occur even if on
 This could be improved by having a tasks visibility status part of it's data and by only updating this tag when different filtering options are set.
 This would mean that when adding a new task instead of checking the visibility of the whole list again, only the visibility of the task added would have to be checked.
 
-Another place where performance may be a concern is where we save the data.
+Another place where performance may be a concern is our process of storing the task list.
 At the moment, whenever the list changes, we rewrite the LocalStorage with the new list.
 This could be done more intelligently by only updating the things that have changed.
 While this is not important now as we are only storing the data locally, when we transition to a cloud based system, our current method would transfer more data than required.
