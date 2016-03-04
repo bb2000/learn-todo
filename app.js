@@ -45,6 +45,9 @@ todo.model = (function() {
         // Storage for currently selected filter (all, completed, uncompleted)
         model.selectFilter = m.prop("all"); // All tasks by default
 
+        // Storage for currently selected category in the filter setting
+        model.categoryFilter = m.prop("all");
+
         // Sorts, updates and stores the list (should be called at the end of every function that changes the list)
         model.updateList = function() {
             model.list.sort(model.compareFunction);
@@ -61,7 +64,7 @@ todo.model = (function() {
                     }
                 }
             );
-            return categoryList;
+            return categoryList.sort(model.comapreCatergories);
         };
 
         // Function with which our todo list is sorted with (returns 0 at first because user has not selected a sort method)
@@ -69,43 +72,48 @@ todo.model = (function() {
             return 0;
         };
 
-        // Sets the compare function to comapare by category
-        model.sortByCategory = function() {
-            model.compareFunction = function(task1, task2) {
-                // Checks whether the tasks are catergorized
-                // Needed as they will be compared as strings otherwise
-                var task1Uncategorized = (task1.category() == "Uncategorized");
-                var task2Uncategorized = (task2.category() == "Uncategorized");
+        // Function for comparing the categories of 2 tasks
+        // Seperate from sortByCatergoy as it needs to be called by allCategories
+        model.compareCategories = function(task1, task2) {
+            // Checks whether the tasks are catergorized
+            // Needed as they will be compared as strings otherwise
+            var task1Uncategorized = (task1.category() == "Uncategorized");
+            var task2Uncategorized = (task2.category() == "Uncategorized");
 
-                // Compare by whether they are catergorized first
-                if (task1Uncategorized || task2Uncategorized) {
-                    // task1 should be before task2
-                    if (!task1Uncategorized) {
-                        return -1
-                    }
-
-                    // task2 should be before task1
-                    if (!task2Uncategorized) {
-                        return 1;
-                    }
-
-                    // tasks are both uncategorized
-                    return 0;
+            // Compare by whether they are catergorized first
+            if (task1Uncategorized || task2Uncategorized) {
+                // task1 should be before task2
+                if (!task1Uncategorized) {
+                    return -1
                 }
 
-                // Compare by category if both are catergorized
-                if (task2.category() > task1.category()) { // task1 should be before task2
-                    return -1;
-                }
-
-                // task2 should be before task 1
-                if (task1.category() > task2.category()) {
+                // task2 should be before task1
+                if (!task2Uncategorized) {
                     return 1;
                 }
 
-                // They have the same category
+                // tasks are both uncategorized
                 return 0;
             }
+
+            // Compare by category if both are catergorized
+            if (task2.category() > task1.category()) { // task1 should be before task2
+                return -1;
+            }
+
+            // task2 should be before task 1
+            if (task1.category() > task2.category()) {
+                return 1;
+            }
+
+            // They have the same category
+            return 0;
+        }
+
+
+        // Sets the compare function to comapare by category
+        model.sortByCategory = function() {
+            model.compareFunction = model.compareCategories;
             model.updateList();
         }
 
@@ -215,7 +223,15 @@ todo.model = (function() {
                 matchesFilter = !task.status();
             }
 
-            return (matchesSearchBox && matchesFilter);
+            // True if the task has the same category that the user has selected to view
+            var matchesCategory;
+            if (model.categoryFilter() == "all") {
+                matchesCategory = true;
+            } else {
+                matchesCategory = (model.categoryFilter() == task.category())
+            }
+
+            return (matchesSearchBox && matchesFilter && matchesCategory);
         }
 
         // Returns true if task in uncompleted, false otherwise
@@ -271,6 +287,15 @@ todo.searchView = function() {
               m("option", {value: "all", selected: true}, "All Tasks"),
               m("option", {value: "completed"}, "Completed Tasks"),
               m("option", {value: "uncompleted"}, "Uncompleted Tasks")
+          ])),
+        m("br"),
+        m("label", "In:",
+          m("select", {onchange: m.withAttr("value", todo.model.categoryFilter)}, [
+              m("option", {value: "all", selected: true}, "All Categories"),
+              todo.model.allCategories().map(
+                  function(category) {
+                      return m("option", {value: category}, "Only " + category);
+                  })
           ]))
     ]);
 }
